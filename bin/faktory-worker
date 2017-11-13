@@ -2,5 +2,6 @@
 
 const faktory = require('../');
 const program = require('../lib/cli');
+require('./job');
 
 faktory.work(program);

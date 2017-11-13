@@ -4,6 +4,7 @@ const cluster = require('cluster');
 const workers = Number(process.argv[2]) || require('os').cpus().length;
 const faktory = require('../');
 const program = require('../lib/cli');
+require('./job');
 
 if (cluster.isMaster) {
   for (let i = 0; i < workers; i++) {

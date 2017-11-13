@@ -1,3 +1,21 @@
+0.7.0 | 2017-11-12
+---
+
+ * Obey heartbeat `state` responses
+ https://github.com/contribsys/faktory/pull/72#issue-271127640
+
+```
+ › bin/faktory-worker
+  ... faktory-manager wid=... Got "quiet" signal from server
+  ... faktory-manager wid=... Quieting
+  ... faktory-manager wid=... Got "terminate" signal from server
+  ... faktory-manager wid=... Stopping
+  ... faktory-manager wid=... Shutting down. In progress: 0
+```
+
+ * Require worker files and automatically register functions by name.
+
+
 0.6.0 | 2017-11-12
 ---
 

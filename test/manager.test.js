@@ -97,5 +97,7 @@ test('manager drains pool after stop timeout', async t => {
 });
 
 function create(...args) {
-  return new Manager(...args);
+  const m = new Manager(...args);
+  m.exit = () => {};
+  return m;
 }
