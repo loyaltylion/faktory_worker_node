@@ -96,6 +96,43 @@ test('manager drains pool after stop timeout', async t => {
   });
 });
 
+test('passes middleware to processor', async t => {
+  const { queue, jobtype } = await push();
+  let i = 0;
+  t.plan(4);
+
+  await new Promise(async (resolve) => {
+    const manager = create({
+      concurrency: 1,
+      queues: [queue],
+      middleware: [
+        async (_, next) => {
+          t.is(i, 0);
+          i += 1;
+          await next();
+          t.is(i, 3);
+        },
+        async (_, next) => {
+          await next();
+          t.is(i, 2);
+          i += 1;
+        }
+      ],
+      timeout: 50,
+      registry: {
+        [jobtype]: async () => {
+          t.is(i, 1);
+          i += 1;
+          manager.stop();
+          resolve();
+        }
+      }
+    });
+
+    manager.run();
+  });
+});
+
 function create(...args) {
   return new Manager(...args);
 }

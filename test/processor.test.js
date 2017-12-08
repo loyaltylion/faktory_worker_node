@@ -175,8 +175,72 @@ test('.execute FAILs and throws when the job throws (sync) during execution', as
   await processor.execute(
     () => { throw new Error('always fails') },
     { jid, jobtype, args: [] }
-  ),
+  );
   t.truthy(called, '.fail not called for jid');
+});
+
+test('.execute invokes middleware stack', async t => {
+  t.plan(2);
+
+  const jid = 'wellhello';
+  const jobtype = 'Job';
+  const processor = create({
+    registry: {},
+    middleware: [
+      () => t.pass()
+    ]
+  });
+
+  await processor.execute(
+    () => {
+      t.pass();
+    },
+    { jid, jobtype, args: [] }
+  );
+});
+
+test('.dispatchWithMiddleware FAILs when middleware errors', async t => {
+  t.plan(1);
+
+  const jid = 'wellhello';
+  const jobtype = 'Job';
+  const processor = create({
+    registry: {},
+    middleware: [
+      () => { throw new Error('mw fail'); }
+    ]
+  });
+
+  processor.fail = () => {
+    t.pass();
+  }
+
+  await processor.dispatchWithMiddleware({
+    fn: () => { t.fail() },
+    job: { jid, jobtype, args: [] }
+  });
+});
+
+test('.execute passes the job as middleware context', async t => {
+  t.plan(2);
+
+  const job = { jid: '123', jobtype: 'Job', args: [] };
+  const processor = create({
+    registry: {},
+    middleware: [
+      async (ctx, next) => {
+        await next();
+        t.is(ctx.job.jid, jid);
+      }
+    ]
+  });
+
+  await processor.execute(
+    () => {
+      t.pass();
+    },
+    job
+  );
 });
 
 // #2
@@ -194,10 +258,11 @@ test('.execute FAILs and throws when the job rejects (async) during execution', 
     called = true;
   };
 
-  await processor.execute(
-    async () => { throw new Error('rejected promise') },
-    { jid, jobtype, args: [] }
-  ),
+  await processor.execute({
+    fn: async () => { throw new Error('rejected promise') },
+    job: { jid, jobtype, args: [] }
+  });
+
   t.truthy(called, '.fail not called for jid');
 });
 
