@@ -34,13 +34,17 @@ const mockServer = () => {
   server.on('connection', (socket) => {
     socket.write("+HI {\"v\":2}\r\n");
 
-    server.once('HELLO', (msg, socket) => {
+    server.once('HELLO', ({ socket }) => {
       socket.write("+OK\r\n");
     });
 
     socket.on('data', async (chunk) => {
-      const msg = chunk.toString();
-      server.emit(msg.split(' ')[0], msg, socket);
+      const [ command, rawData = '' ] = chunk.toString().split(' ');
+      let data = rawData;
+      try {
+        data = JSON.parse(rawData);
+      } catch(_) {}
+      server.emit(command, { data, socket });
     });
   });
   return server;
